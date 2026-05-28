@@ -1,0 +1,45 @@
+{
+  "statePath": ".crash-ticket-sync-state.json",
+  "dryRun": false,
+  "projects": [
+    {
+      "key": "kylee-ios",
+      "displayName": "Kylee iOS",
+      "source": {
+        "type": "bigquery",
+        "projectId": "firebase-project-id",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_IOS"
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://tcmd.visualstudio.com",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": {
+        "sinceHours": 24,
+        "minEvents": 1,
+        "fatalOnly": false
+      }
+    },
+    {
+      "key": "example-android",
+      "source": {
+        "type": "bigquery",
+        "projectId": "firebase-project-id",
+        "dataset": "firebase_crashlytics",
+        "table": "com_example_android_ANDROID",
+        "query": "SELECT CAST(issue_id AS STRING) AS issueId, ANY_VALUE(issue_title) AS title, COUNT(*) AS eventCount, MAX(TIMESTAMP(event_timestamp)) AS latestEventAt FROM `firebase-project-id.firebase_crashlytics.com_example_android_ANDROID` WHERE TIMESTAMP(event_timestamp) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL @sinceHours HOUR) GROUP BY issue_id HAVING eventCount >= @minEvents"
+      },
+      "ticket": {
+        "type": "jira",
+        "baseUrl": "https://example.atlassian.net",
+        "projectKey": "MOB",
+        "issueType": "Bug",
+        "labels": ["crashlytics"]
+      }
+    }
+  ]
+}

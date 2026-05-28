@@ -1,0 +1,45 @@
+{
+  "name": "crash-ticket-sync",
+  "version": "0.1.0",
+  "description": "CLI to sync Crashlytics crashes into Azure Boards or Jira tickets",
+  "type": "module",
+  "bin": {
+    "crash-ticket-sync": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akmarinov/crash-ticket-sync.git"
+  },
+  "keywords": [
+    "firebase",
+    "crashlytics",
+    "azure-devops",
+    "jira",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/bigquery": "^8.1.1",
+    "commander": "^14.0.2",
+    "dotenv": "^17.2.3",
+    "undici": "^7.16.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "bugs": {
+    "url": "https://github.com/akmarinov/crash-ticket-sync/issues"
+  },
+  "homepage": "https://github.com/akmarinov/crash-ticket-sync#readme"
+}
