@@ -1,0 +1,74 @@
+import { BigQuery } from "@google-cloud/bigquery";
+import type { ProjectConfig } from "../config.js";
+import type { CrashRecord } from "../types.js";
+
+export async function queryCrashlytics(project: ProjectConfig, sinceHours: number): Promise<CrashRecord[]> {
+  const source = project.source;
+  const bigQuery = new BigQuery({ projectId: source.projectId });
+  const query = source.query ?? defaultCrashlyticsQuery(source.projectId, source.dataset, source.table);
+  const [rows] = await bigQuery.query({
+    query,
+    location: source.location,
+    params: { sinceHours, minEvents: project.filters.minEvents, fatalOnly: project.filters.fatalOnly }
+  });
+
+  return rows.map((row) => normalizeBigQueryRow(project.key, row as Record<string, unknown>));
+}
+
+function defaultCrashlyticsQuery(projectId: string, dataset: string, table: string): string {
+  const tableRef = `\`${projectId}.${dataset}.${table}\``;
+  return `
+SELECT
+  CAST(issue_id AS STRING) AS issueId,
+  COALESCE(ANY_VALUE(issue_title), CONCAT('Crashlytics issue ', CAST(issue_id AS STRING))) AS title,
+  ANY_VALUE(issue_subtitle) AS subtitle,
+  ANY_VALUE(platform) AS platform,
+  ANY_VALUE(bundle_identifier) AS bundleIdentifier,
+  ANY_VALUE(display_version) AS displayVersion,
+  ANY_VALUE(build_version) AS buildVersion,
+  COUNT(*) AS eventCount,
+  MAX(TIMESTAMP(event_timestamp)) AS latestEventAt,
+  LOGICAL_OR(COALESCE(is_fatal, false)) AS fatal
+FROM ${tableRef}
+WHERE TIMESTAMP(event_timestamp) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL @sinceHours HOUR)
+GROUP BY issue_id
+HAVING eventCount >= @minEvents AND (@fatalOnly = false OR fatal = true)
+ORDER BY latestEventAt DESC
+`;
+}
+
+function normalizeBigQueryRow(projectKey: string, row: Record<string, unknown>): CrashRecord {
+  const issueId = stringValue(row.issueId) ?? stringValue(row.issue_id) ?? "unknown";
+  return {
+    projectKey,
+    issueId,
+    title: stringValue(row.title) ?? stringValue(row.issueTitle) ?? `Crashlytics issue ${issueId}`,
+    subtitle: stringValue(row.subtitle),
+    platform: stringValue(row.platform),
+    bundleIdentifier: stringValue(row.bundleIdentifier),
+    displayVersion: stringValue(row.displayVersion),
+    buildVersion: stringValue(row.buildVersion),
+    eventCount: numberValue(row.eventCount),
+    latestEventAt: stringValue(row.latestEventAt),
+    fatal: booleanValue(row.fatal),
+    consoleUrl: stringValue(row.consoleUrl),
+    raw: row
+  };
+}
+
+function stringValue(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (value instanceof Date) return value.toISOString();
+  if (value && typeof value === "object" && "value" in value && typeof value.value === "string") return value.value;
+  return undefined;
+}
+
+function numberValue(value: unknown): number | undefined {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value);
+  return undefined;
+}
+
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
+}

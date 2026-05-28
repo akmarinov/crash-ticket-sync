@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env
+.crash-ticket-sync-state.json
+*.log
