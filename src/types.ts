@@ -4,6 +4,7 @@ export type CrashSourceType = "bigquery";
 
 export interface CrashRecord {
   projectKey: string;
+  env?: string;
   issueId: string;
   title: string;
   subtitle?: string;
