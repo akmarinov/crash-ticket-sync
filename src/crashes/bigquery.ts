@@ -13,7 +13,7 @@ export async function queryCrashlytics(project: ProjectConfig, sinceHours: numbe
     params: { sinceHours, minEvents: project.filters.minEvents, fatalOnly: project.filters.fatalOnly }
   });
 
-  return rows.map((row) => normalizeBigQueryRow(project.key, row as Record<string, unknown>));
+  return rows.map((row) => normalizeBigQueryRow(project.key, project.env, row as Record<string, unknown>));
 }
 
 // Fetches the most recent events for a single issue so we can build the crash
@@ -75,10 +75,11 @@ ORDER BY latestEventAt DESC
 `;
 }
 
-function normalizeBigQueryRow(projectKey: string, row: Record<string, unknown>): CrashRecord {
+function normalizeBigQueryRow(projectKey: string, env: string | undefined, row: Record<string, unknown>): CrashRecord {
   const issueId = stringValue(row.issueId) ?? stringValue(row.issue_id) ?? "unknown";
   return {
     projectKey,
+    env,
     issueId,
     title: stringValue(row.title) ?? stringValue(row.issueTitle) ?? `Crashlytics issue ${issueId}`,
     subtitle: stringValue(row.subtitle),

@@ -35,6 +35,7 @@ const jiraTicketSchema = z.object({
 const projectSchema = z.object({
   key: z.string().min(1),
   displayName: z.string().optional(),
+  env: z.string().optional(),
   source: bigQuerySourceSchema,
   ticket: z.discriminatedUnion("type", [azureTicketSchema, jiraTicketSchema]),
   filters: z.object({

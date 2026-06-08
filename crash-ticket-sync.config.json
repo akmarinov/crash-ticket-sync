@@ -3,8 +3,9 @@
   "dryRun": false,
   "projects": [
     {
-      "key": "kylee-ios",
+      "key": "kylee-ios-appstore",
       "displayName": "Kylee iOS (App Store)",
+      "env": "AppStore",
       "source": {
         "type": "bigquery",
         "projectId": "andromeda-51c6f",
@@ -19,11 +20,107 @@
         "workItemType": "Bug",
         "tags": ["iOS", "Crashlytics"]
       },
-      "filters": {
-        "sinceHours": 24,
-        "minEvents": 1,
-        "fatalOnly": false
-      }
+      "filters": { "sinceHours": 24, "minEvents": 1, "fatalOnly": false }
+    },
+    {
+      "key": "kylee-ios-prod",
+      "displayName": "Kylee iOS (Prod)",
+      "env": "Prod",
+      "source": {
+        "type": "bigquery",
+        "projectId": "andromeda-51c6f",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_prod_IOS",
+        "recentEventsLimit": 20
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://dev.azure.com/TCMD",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": { "sinceHours": 24, "minEvents": 1, "fatalOnly": false }
+    },
+    {
+      "key": "kylee-ios-uat",
+      "displayName": "Kylee iOS (UAT)",
+      "env": "UAT",
+      "source": {
+        "type": "bigquery",
+        "projectId": "andromeda-51c6f",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_uat_IOS",
+        "recentEventsLimit": 20
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://dev.azure.com/TCMD",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": { "sinceHours": 24, "minEvents": 1, "fatalOnly": false }
+    },
+    {
+      "key": "kylee-ios-stage",
+      "displayName": "Kylee iOS (Stage)",
+      "env": "Stage",
+      "source": {
+        "type": "bigquery",
+        "projectId": "andromeda-51c6f",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_stage_IOS",
+        "recentEventsLimit": 20
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://dev.azure.com/TCMD",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": { "sinceHours": 24, "minEvents": 1, "fatalOnly": false }
+    },
+    {
+      "key": "kylee-ios-sandbox",
+      "displayName": "Kylee iOS (Sandbox)",
+      "env": "Sandbox",
+      "source": {
+        "type": "bigquery",
+        "projectId": "andromeda-51c6f",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_sandbox_IOS",
+        "recentEventsLimit": 20
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://dev.azure.com/TCMD",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": { "sinceHours": 24, "minEvents": 1, "fatalOnly": false }
+    },
+    {
+      "key": "kylee-ios-dev",
+      "displayName": "Kylee iOS (Dev)",
+      "env": "Dev",
+      "source": {
+        "type": "bigquery",
+        "projectId": "andromeda-51c6f",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_dev_IOS",
+        "recentEventsLimit": 20
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://dev.azure.com/TCMD",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": { "sinceHours": 24, "minEvents": 1, "fatalOnly": false }
     }
   ]
 }

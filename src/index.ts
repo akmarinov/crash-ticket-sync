@@ -79,6 +79,7 @@ program
       metadataPath: options.metadata,
       stacktracePath: options.stacktrace
     });
+    crash.env = project.env;
     await processCrashes({
       project,
       state,

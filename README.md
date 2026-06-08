@@ -14,7 +14,9 @@ Firebase does not expose a general public REST API for listing Crashlytics issue
 - Azure Boards
 - Jira Cloud
 
-Tickets are deduped using a stable tag/label derived from the Crashlytics `issue_id`. The `sync` command also keeps a local state file, and only files a ticket the first time an issue is seen. Pass `--recomment` to add a recurrence note when an existing ticket is matched again (off by default so scheduled runs don't spam long-lived tickets).
+Each project may set `env` (e.g. `Prod`, `UAT`). The environment is added to the work item title (`[Crashlytics][UAT] …`), tags, and body, and is folded into the dedupe tag so the same issue id across two builds maps to two distinct tickets.
+
+Tickets are deduped using a stable tag/label derived from the Crashlytics `issue_id` (scoped by `env`). The `sync` command also keeps a local state file, and only files a ticket the first time an issue is seen. Pass `--recomment` to add a recurrence note when an existing ticket is matched again (off by default so scheduled runs don't spam long-lived tickets).
 
 ## Attachments
 
