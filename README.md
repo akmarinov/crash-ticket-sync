@@ -14,7 +14,17 @@ Firebase does not expose a general public REST API for listing Crashlytics issue
 - Azure Boards
 - Jira Cloud
 
-Tickets are deduped using a stable tag/label derived from the Crashlytics `issue_id`.
+Tickets are deduped using a stable tag/label derived from the Crashlytics `issue_id`. The `sync` command also keeps a local state file, and only files a ticket the first time an issue is seen. Pass `--recomment` to add a recurrence note when an existing ticket is matched again (off by default so scheduled runs don't spam long-lived tickets).
+
+## Attachments
+
+When a new Azure Boards work item is created from a BigQuery sync, the latest events for the issue are fetched and attached:
+
+- `stacktrace.txt` — formatted crash log built from the crashing exception (or crashed thread) frames of the latest event.
+- `events.log` — the Crashlytics breadcrumb/custom-log messages of the latest event.
+- `recent-events.csv` — a summary of the most recent events (timestamp, fatal, app version, build, OS, device). Controlled by `source.recentEventsLimit` (default 20).
+
+`import-json` attaches a `stacktrace.txt` built from the supplied stacktrace file.
 
 ## Install
 

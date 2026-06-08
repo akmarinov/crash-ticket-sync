@@ -7,7 +7,9 @@ const bigQuerySourceSchema = z.object({
   dataset: z.string().min(1),
   table: z.string().min(1),
   location: z.string().optional(),
-  query: z.string().optional()
+  query: z.string().optional(),
+  detailQuery: z.string().optional(),
+  recentEventsLimit: z.number().int().positive().default(20)
 });
 
 const azureTicketSchema = z.object({

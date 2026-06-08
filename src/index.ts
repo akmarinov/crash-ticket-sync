@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { Command } from "commander";
 import { loadConfig, selectProjects } from "./config.js";
+import { buildAttachments } from "./crashes/artifacts.js";
 import { crashFromCrashlyticsJson } from "./crashes/jsonImport.js";
 import { StateStore } from "./state.js";
 import { processCrashes, syncProject } from "./sync.js";
@@ -40,8 +41,9 @@ program
   .requiredOption("-c, --config <path>", "config path")
   .option("-p, --project <keys>", "comma-separated project keys from config")
   .option("--since-hours <hours>", "override lookback window", parseNumber)
+  .option("--recomment", "add a recurrence comment when an existing ticket is found again")
   .option("--dry-run", "show what would be created without writing tickets")
-  .action(async (options: { config: string; project?: string; sinceHours?: number; dryRun?: boolean }) => {
+  .action(async (options: { config: string; project?: string; sinceHours?: number; recomment?: boolean; dryRun?: boolean }) => {
     const config = await loadConfig(options.config);
     const state = new StateStore(config.statePath);
     await state.load();
@@ -51,7 +53,8 @@ program
         project,
         state,
         dryRun: options.dryRun ?? config.dryRun,
-        sinceHours: options.sinceHours
+        sinceHours: options.sinceHours,
+        recomment: options.recomment
       });
     }
     if (!options.dryRun) await state.save();
@@ -80,7 +83,11 @@ program
       project,
       state,
       dryRun: options.dryRun ?? config.dryRun,
-      crashes: [crash]
+      crashes: [crash],
+      // Build a stacktrace.txt attachment from the imported crash log.
+      enrich: async (record) => {
+        record.attachments = buildAttachments(record, []);
+      }
     });
     if (!options.dryRun) await state.save();
   });

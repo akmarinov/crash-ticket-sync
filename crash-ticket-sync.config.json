@@ -1,0 +1,29 @@
+{
+  "statePath": ".crash-ticket-sync-state.json",
+  "dryRun": false,
+  "projects": [
+    {
+      "key": "kylee-ios",
+      "displayName": "Kylee iOS (App Store)",
+      "source": {
+        "type": "bigquery",
+        "projectId": "andromeda-51c6f",
+        "dataset": "firebase_crashlytics",
+        "table": "com_tactilemedical_kylee_IOS",
+        "recentEventsLimit": 20
+      },
+      "ticket": {
+        "type": "azure",
+        "organizationUrl": "https://dev.azure.com/TCMD",
+        "project": "Andromeda",
+        "workItemType": "Bug",
+        "tags": ["iOS", "Crashlytics"]
+      },
+      "filters": {
+        "sinceHours": 24,
+        "minEvents": 1,
+        "fatalOnly": false
+      }
+    }
+  ]
+}

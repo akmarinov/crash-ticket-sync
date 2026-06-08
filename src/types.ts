@@ -16,7 +16,45 @@ export interface CrashRecord {
   fatal?: boolean;
   stacktrace?: string;
   consoleUrl?: string;
+  attachments?: Attachment[];
   raw?: unknown;
+}
+
+export interface Attachment {
+  filename: string;
+  contentType: string;
+  data: Buffer;
+}
+
+export interface CrashEventFrame {
+  index?: number;
+  library?: string;
+  symbol?: string;
+  file?: string;
+  line?: number;
+  offset?: number;
+  address?: string;
+}
+
+export interface CrashEventLog {
+  timestamp?: string;
+  message?: string;
+}
+
+export interface CrashEvent {
+  eventId?: string;
+  eventTimestamp?: string;
+  fatal?: boolean;
+  displayVersion?: string;
+  buildVersion?: string;
+  osName?: string;
+  osVersion?: string;
+  deviceModel?: string;
+  deviceManufacturer?: string;
+  exceptionType?: string;
+  exceptionMessage?: string;
+  frames: CrashEventFrame[];
+  logs: CrashEventLog[];
 }
 
 export interface CreatedTicket {
