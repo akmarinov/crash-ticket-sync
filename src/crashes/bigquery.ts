@@ -1,6 +1,7 @@
 import { BigQuery } from "@google-cloud/bigquery";
 import type { ProjectConfig } from "../config.js";
-import type { CrashRecord } from "../types.js";
+import type { CrashEvent, CrashRecord } from "../types.js";
+import { normalizeEvent } from "./eventNormalize.js";
 
 export async function queryCrashlytics(project: ProjectConfig, sinceHours: number): Promise<CrashRecord[]> {
   const source = project.source;
@@ -13,6 +14,43 @@ export async function queryCrashlytics(project: ProjectConfig, sinceHours: numbe
   });
 
   return rows.map((row) => normalizeBigQueryRow(project.key, row as Record<string, unknown>));
+}
+
+// Fetches the most recent events for a single issue so we can build the crash
+// log, breadcrumb log, and recent-events summary attachments. Returned events
+// are ordered newest-first; index 0 is the event used for the crash log.
+export async function fetchEventDetail(project: ProjectConfig, issueId: string, sinceHours: number): Promise<CrashEvent[]> {
+  const source = project.source;
+  const bigQuery = new BigQuery({ projectId: source.projectId });
+  const query = source.detailQuery ?? defaultEventDetailQuery(source.projectId, source.dataset, source.table);
+  const [rows] = await bigQuery.query({
+    query,
+    location: source.location,
+    params: { issueId, sinceHours, recentLimit: source.recentEventsLimit }
+  });
+
+  return rows.map((row) => normalizeEvent(row as Record<string, unknown>));
+}
+
+function defaultEventDetailQuery(projectId: string, dataset: string, table: string): string {
+  const tableRef = `\`${projectId}.${dataset}.${table}\``;
+  return `
+SELECT
+  event_id,
+  event_timestamp,
+  is_fatal,
+  application,
+  device,
+  operating_system,
+  exceptions,
+  threads,
+  logs
+FROM ${tableRef}
+WHERE CAST(issue_id AS STRING) = @issueId
+  AND TIMESTAMP(event_timestamp) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL @sinceHours HOUR)
+ORDER BY event_timestamp DESC
+LIMIT @recentLimit
+`;
 }
 
 function defaultCrashlyticsQuery(projectId: string, dataset: string, table: string): string {

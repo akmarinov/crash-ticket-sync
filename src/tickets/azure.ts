@@ -1,6 +1,6 @@
 import { request } from "undici";
 import type { ProjectConfig } from "../config.js";
-import type { CrashRecord, CreatedTicket, ExistingTicket, TicketClient } from "../types.js";
+import type { Attachment, CrashRecord, CreatedTicket, ExistingTicket, TicketClient } from "../types.js";
 import { buildTicketBody, buildTicketTitle, crashTag } from "../crashes/normalize.js";
 
 export class AzureBoardsClient implements TicketClient {
@@ -47,6 +47,17 @@ ORDER BY [System.ChangedDate] DESC
     if (this.ticketConfig.iterationPath) patch.push(op("/fields/System.IterationPath", this.ticketConfig.iterationPath));
     if (this.ticketConfig.assignedTo) patch.push(op("/fields/System.AssignedTo", this.ticketConfig.assignedTo));
 
+    // Upload the crash log / event log / recent-events files and attach them to
+    // the new work item via AttachedFile relations.
+    for (const attachment of crash.attachments ?? []) {
+      const uploaded = await this.uploadAttachment(attachment);
+      patch.push(op("/relations/-", {
+        rel: "AttachedFile",
+        url: uploaded.url,
+        attributes: { name: attachment.filename, comment: "Crashlytics export" }
+      }));
+    }
+
     const created = await this.requestJson<{ id: number; url: string }>(
       "PATCH",
       `${this.projectUrl()}/_apis/wit/workitems/$${encodeURIComponent(this.ticketConfig.workItemType)}?api-version=7.1`,
@@ -68,8 +79,33 @@ ORDER BY [System.ChangedDate] DESC
     );
   }
 
+  private async uploadAttachment(attachment: Attachment): Promise<{ id: string; url: string }> {
+    const url = `${this.projectUrl()}/_apis/wit/attachments?fileName=${encodeURIComponent(attachment.filename)}&api-version=7.1`;
+    const response = await request(url, {
+      method: "POST",
+      headers: {
+        authorization: this.authHeader(),
+        "content-type": attachment.contentType,
+        accept: "application/json"
+      },
+      body: attachment.data
+    });
+    const text = await response.body.text();
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw new Error(`Azure Boards attachment upload failed ${response.statusCode}: ${text}`);
+    }
+    const parsed = JSON.parse(text) as { id: string; url: string };
+    return parsed;
+  }
+
   private projectUrl(): string {
     return `${this.ticketConfig.organizationUrl.replace(/\/$/, "")}/${encodeURIComponent(this.ticketConfig.project)}`;
+  }
+
+  private authHeader(): string {
+    const token = process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_EXT_PAT;
+    if (!token) throw new Error("Missing AZURE_DEVOPS_PAT, AZURE_DEVOPS_PAT, or AZURE_DEVOPS_EXT_PAT");
+    return `Basic ${Buffer.from(`:${token}`).toString("base64")}`;
   }
 
   private async requestJson<T>(
@@ -78,12 +114,10 @@ ORDER BY [System.ChangedDate] DESC
     body?: unknown,
     contentType = "application/json"
   ): Promise<T> {
-    const token = process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_EXT_PAT;
-    if (!token) throw new Error("Missing AZURE_DEVOPS_PAT, AZURE_DEVOPS_PAT, or AZURE_DEVOPS_EXT_PAT");
     const response = await request(url, {
       method,
       headers: {
-        authorization: `Basic ${Buffer.from(`:${token}`).toString("base64")}`,
+        authorization: this.authHeader(),
         "content-type": contentType,
         accept: "application/json"
       },
