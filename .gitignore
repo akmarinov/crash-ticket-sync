@@ -3,3 +3,7 @@ dist/
 .env
 .crash-ticket-sync-state.json
 *.log
+
+# Real configs hold product/org identifiers; keep them out of this public repo.
+crash-ticket-sync.config.json
+*.config.local.json
