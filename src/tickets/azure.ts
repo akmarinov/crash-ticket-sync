@@ -81,11 +81,13 @@ ORDER BY [System.ChangedDate] DESC
 
   private async uploadAttachment(attachment: Attachment): Promise<{ id: string; url: string }> {
     const url = `${this.projectUrl()}/_apis/wit/attachments?fileName=${encodeURIComponent(attachment.filename)}&api-version=7.1`;
+    // The attachments API only accepts application/octet-stream for uploads
+    // (not text/plain or text/csv); the filename extension conveys the type.
     const response = await request(url, {
       method: "POST",
       headers: {
         authorization: this.authHeader(),
-        "content-type": attachment.contentType,
+        "content-type": "application/octet-stream",
         accept: "application/json"
       },
       body: attachment.data
