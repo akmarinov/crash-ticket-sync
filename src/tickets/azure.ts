@@ -51,6 +51,16 @@ ORDER BY [System.ChangedDate] DESC
     if (this.ticketConfig.iterationPath) patch.push(op("/fields/System.IterationPath", this.ticketConfig.iterationPath));
     if (this.ticketConfig.assignedTo) patch.push(op("/fields/System.AssignedTo", this.ticketConfig.assignedTo));
 
+    // Bug-only fields: the environment the crash was found in, and the
+    // version/build it was found in.
+    if (this.ticketConfig.workItemType === "Bug") {
+      if (crash.env) patch.push(op("/fields/Microsoft.VSTS.CMMI.FoundInEnvironment", crash.env));
+      const foundIn = [crash.displayVersion, crash.buildVersion ? `(${crash.buildVersion})` : undefined]
+        .filter(Boolean)
+        .join(" ");
+      if (foundIn) patch.push(op("/fields/Microsoft.VSTS.Build.FoundIn", foundIn));
+    }
+
     // Upload the crash log / event log / recent-events files and attach them to
     // the new work item via AttachedFile relations.
     for (const attachment of crash.attachments ?? []) {
