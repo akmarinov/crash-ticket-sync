@@ -37,9 +37,13 @@ ORDER BY [System.ChangedDate] DESC
 
   async create(crash: CrashRecord): Promise<CreatedTicket> {
     const tags = ["Crashlytics", "crash-ticket-sync", crashTag(crash.issueId, crash.env), ...(crash.env ? [crash.env] : []), ...this.ticketConfig.tags];
+    const bodyHtml = htmlEscape(buildTicketBody(crash)).replace(/\n/g, "<br/>");
+    // A Bug's form shows Repro Steps, not Description, so write the body there.
+    const descriptionField = this.ticketConfig.descriptionField
+      ?? (this.ticketConfig.workItemType === "Bug" ? "Microsoft.VSTS.TCM.ReproSteps" : "System.Description");
     const patch = [
       op("/fields/System.Title", buildTicketTitle(crash)),
-      op("/fields/System.Description", htmlEscape(buildTicketBody(crash)).replace(/\n/g, "<br/>")),
+      op(`/fields/${descriptionField}`, bodyHtml),
       op("/fields/System.Tags", tags.join("; "))
     ];
 

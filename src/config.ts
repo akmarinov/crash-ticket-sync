@@ -20,6 +20,9 @@ const azureTicketSchema = z.object({
   areaPath: z.string().optional(),
   iterationPath: z.string().optional(),
   assignedTo: z.string().optional(),
+  // Field the crash body is written to. Defaults to Microsoft.VSTS.TCM.ReproSteps
+  // for Bug (its form has no Description field) and System.Description otherwise.
+  descriptionField: z.string().optional(),
   tags: z.array(z.string()).default([])
 });
 
