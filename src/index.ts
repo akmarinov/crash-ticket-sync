@@ -93,6 +93,7 @@ program
       stacktracePath: options.stacktrace
     });
     crash.env = project.env;
+    crash.platform = project.platform ?? crash.platform;
     await processCrashes({
       project,
       state,

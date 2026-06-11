@@ -12,7 +12,7 @@ export class AzureBoardsClient implements TicketClient {
   }
 
   async findExisting(crash: CrashRecord): Promise<ExistingTicket | undefined> {
-    const tag = crashTag(crash.issueId, crash.env);
+    const tag = crashTag(crash.issueId, crash.env, crash.platform);
     const wiql = {
       query: `
 SELECT [System.Id], [System.Title], [System.State]
@@ -36,7 +36,7 @@ ORDER BY [System.ChangedDate] DESC
   }
 
   async create(crash: CrashRecord): Promise<CreatedTicket> {
-    const tags = ["Crashlytics", "crash-ticket-sync", crashTag(crash.issueId, crash.env), ...(crash.env ? [crash.env] : []), ...this.ticketConfig.tags];
+    const tags = ["Crashlytics", "crash-ticket-sync", crashTag(crash.issueId, crash.env, crash.platform), ...(crash.env ? [crash.env] : []), ...this.ticketConfig.tags];
     const bodyHtml = htmlEscape(buildTicketBody(crash)).replace(/\n/g, "<br/>");
     // A Bug's form shows Repro Steps, not Description, so write the body there.
     const descriptionField = this.ticketConfig.descriptionField

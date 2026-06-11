@@ -38,6 +38,10 @@ const jiraTicketSchema = z.object({
 const projectSchema = z.object({
   key: z.string().min(1),
   displayName: z.string().optional(),
+  // Platform (e.g. iOS / Android) and deployment environment (e.g. Dev / UAT /
+  // Prod) are tracked separately: env populates the ticket's "Found In
+  // Environment"; platform distinguishes otherwise-identical envs across OSes.
+  platform: z.string().optional(),
   env: z.string().optional(),
   source: bigQuerySourceSchema,
   ticket: z.discriminatedUnion("type", [azureTicketSchema, jiraTicketSchema]),

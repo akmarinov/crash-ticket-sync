@@ -18,4 +18,10 @@ describe("env scoping", () => {
     expect(buildTicketTitle(crash({ env: undefined }))).toBe("[Crashlytics] Boom");
     expect(buildTicketBody(crash({ env: "UAT" }))).toContain("Environment: UAT");
   });
+
+  it("scopes and labels by platform + environment", () => {
+    expect(crashTag("abc123", "Prod", "Android")).toBe("CrashlyticsIssue-Android-Prod-abc123");
+    expect(crashTag("abc123", "Prod", "Android")).not.toBe(crashTag("abc123", "Prod", "iOS"));
+    expect(buildTicketTitle(crash({ platform: "Android", env: "Prod" }))).toBe("[Crashlytics][Android][Prod] Boom");
+  });
 });

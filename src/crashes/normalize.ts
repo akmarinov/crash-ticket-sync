@@ -4,11 +4,12 @@ export function crashDedupeKey(crash: CrashRecord): string {
   return `${crash.projectKey}:${crash.issueId}`;
 }
 
-// Dedupe tag is scoped by environment so the same issue id in two builds maps
-// to two distinct tickets.
-export function crashTag(issueId: string, env?: string): string {
-  const envPart = env ? `${sanitizeTag(env)}-` : "";
-  return `CrashlyticsIssue-${envPart}${sanitizeTag(issueId)}`;
+// Dedupe tag is scoped by platform + environment so the same issue id maps to
+// distinct tickets across OSes and build flavors.
+export function crashTag(issueId: string, env?: string, platform?: string): string {
+  const parts = [platform, env].filter(Boolean).map(sanitizeTag);
+  const prefix = parts.length > 0 ? `${parts.join("-")}-` : "";
+  return `CrashlyticsIssue-${prefix}${sanitizeTag(issueId)}`;
 }
 
 function sanitizeTag(value: string): string {
@@ -17,8 +18,8 @@ function sanitizeTag(value: string): string {
 
 export function buildTicketTitle(crash: CrashRecord): string {
   const title = crash.title.trim() || `Crashlytics issue ${crash.issueId}`;
-  const envPart = crash.env ? `[${crash.env}]` : "";
-  return `[Crashlytics]${envPart} ${title}`.slice(0, 250);
+  const labels = [crash.platform, crash.env].filter(Boolean).map((value) => `[${value}]`).join("");
+  return `[Crashlytics]${labels} ${title}`.slice(0, 250);
 }
 
 export function buildTicketBody(crash: CrashRecord): string {
