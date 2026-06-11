@@ -62,8 +62,8 @@ SELECT
   ANY_VALUE(issue_subtitle) AS subtitle,
   ANY_VALUE(platform) AS platform,
   ANY_VALUE(bundle_identifier) AS bundleIdentifier,
-  ANY_VALUE(display_version) AS displayVersion,
-  ANY_VALUE(build_version) AS buildVersion,
+  ANY_VALUE(application.display_version) AS displayVersion,
+  ANY_VALUE(application.build_version) AS buildVersion,
   COUNT(*) AS eventCount,
   MAX(TIMESTAMP(event_timestamp)) AS latestEventAt,
   LOGICAL_OR(COALESCE(is_fatal, false)) AS fatal
