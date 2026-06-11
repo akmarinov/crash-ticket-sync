@@ -47,17 +47,30 @@ program
     const config = await loadConfig(options.config);
     const state = new StateStore(config.statePath);
     await state.load();
-    for (const project of selectProjects(config, options.project)) {
+    const projects = selectProjects(config, options.project);
+    let failures = 0;
+    for (const project of projects) {
       console.log(`sync ${project.key}`);
-      await syncProject({
-        project,
-        state,
-        dryRun: options.dryRun ?? config.dryRun,
-        sinceHours: options.sinceHours,
-        recomment: options.recomment
-      });
+      try {
+        await syncProject({
+          project,
+          state,
+          dryRun: options.dryRun ?? config.dryRun,
+          sinceHours: options.sinceHours,
+          recomment: options.recomment
+        });
+      } catch (error) {
+        // A per-project failure — most commonly the Crashlytics export table
+        // for this app/env not existing yet — must not abort the other
+        // projects. Log and continue; only fail the run if every project errors.
+        failures += 1;
+        console.warn(`skip ${project.key}: ${error instanceof Error ? error.message : error}`);
+      }
     }
     if (!options.dryRun) await state.save();
+    if (projects.length > 0 && failures === projects.length) {
+      throw new Error(`all ${failures} project(s) failed`);
+    }
   });
 
 program
