@@ -44,7 +44,7 @@ npm run dev -- init-config -o crash-ticket-sync.config.json
 Authentication is read from environment variables:
 
 - BigQuery: Google ADC, usually `GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json`
-- Azure Boards: `AZURE_DEVOPS_PAT`, `AZURE_DEVOPS_PAT`, or `AZURE_DEVOPS_EXT_PAT`
+- Azure Boards: `AZURE_DEVOPS_PAT` or `AZURE_DEVOPS_EXT_PAT`
 - Jira: `JIRA_EMAIL` and `JIRA_API_TOKEN`
 
 ## Run

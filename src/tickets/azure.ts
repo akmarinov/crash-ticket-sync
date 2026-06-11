@@ -119,8 +119,8 @@ ORDER BY [System.ChangedDate] DESC
   }
 
   private authHeader(): string {
-    const token = process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_EXT_PAT;
-    if (!token) throw new Error("Missing AZURE_DEVOPS_PAT, AZURE_DEVOPS_PAT, or AZURE_DEVOPS_EXT_PAT");
+    const token = process.env.AZURE_DEVOPS_PAT ?? process.env.AZURE_DEVOPS_EXT_PAT;
+    if (!token) throw new Error("Missing AZURE_DEVOPS_PAT or AZURE_DEVOPS_EXT_PAT");
     return `Basic ${Buffer.from(`:${token}`).toString("base64")}`;
   }
 
