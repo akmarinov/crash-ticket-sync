@@ -2,6 +2,7 @@ import { BigQuery } from "@google-cloud/bigquery";
 import type { ProjectConfig } from "../config.js";
 import type { CrashEvent, CrashRecord } from "../types.js";
 import { normalizeEvent } from "./eventNormalize.js";
+import { crashlyticsConsoleUrl } from "./normalize.js";
 
 export async function queryCrashlytics(project: ProjectConfig, sinceHours: number): Promise<CrashRecord[]> {
   const source = project.source;
@@ -13,7 +14,7 @@ export async function queryCrashlytics(project: ProjectConfig, sinceHours: numbe
     params: { sinceHours, minEvents: project.filters.minEvents, fatalOnly: project.filters.fatalOnly }
   });
 
-  return rows.map((row) => normalizeBigQueryRow(project.key, project.platform, project.env, row as Record<string, unknown>));
+  return rows.map((row) => normalizeBigQueryRow(project.key, project.platform, project.env, source.projectId, row as Record<string, unknown>));
 }
 
 // Fetches the most recent events for a single issue so we can build the crash
@@ -75,23 +76,25 @@ ORDER BY latestEventAt DESC
 `;
 }
 
-function normalizeBigQueryRow(projectKey: string, platform: string | undefined, env: string | undefined, row: Record<string, unknown>): CrashRecord {
+function normalizeBigQueryRow(projectKey: string, platform: string | undefined, env: string | undefined, firebaseProjectId: string, row: Record<string, unknown>): CrashRecord {
   const issueId = stringValue(row.issueId) ?? stringValue(row.issue_id) ?? "unknown";
+  // Prefer the configured platform label; fall back to the export's value.
+  const resolvedPlatform = platform ?? stringValue(row.platform);
+  const bundleIdentifier = stringValue(row.bundleIdentifier);
   return {
     projectKey,
     env,
     issueId,
     title: stringValue(row.title) ?? stringValue(row.issueTitle) ?? `Crashlytics issue ${issueId}`,
     subtitle: stringValue(row.subtitle),
-    // Prefer the configured platform label; fall back to the export's value.
-    platform: platform ?? stringValue(row.platform),
-    bundleIdentifier: stringValue(row.bundleIdentifier),
+    platform: resolvedPlatform,
+    bundleIdentifier,
     displayVersion: stringValue(row.displayVersion),
     buildVersion: stringValue(row.buildVersion),
     eventCount: numberValue(row.eventCount),
     latestEventAt: stringValue(row.latestEventAt),
     fatal: booleanValue(row.fatal),
-    consoleUrl: stringValue(row.consoleUrl),
+    consoleUrl: stringValue(row.consoleUrl) ?? crashlyticsConsoleUrl(firebaseProjectId, resolvedPlatform, bundleIdentifier, issueId),
     raw: row
   };
 }

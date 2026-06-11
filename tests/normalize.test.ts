@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTicketBody, buildTicketTitle, crashTag } from "../src/crashes/normalize.js";
+import { buildTicketBody, buildTicketTitle, crashTag, crashlyticsConsoleUrl } from "../src/crashes/normalize.js";
 import type { CrashRecord } from "../src/types.js";
 
 function crash(overrides: Partial<CrashRecord> = {}): CrashRecord {
@@ -23,5 +23,11 @@ describe("env scoping", () => {
     expect(crashTag("abc123", "Prod", "Android")).toBe("CrashlyticsIssue-Android-Prod-abc123");
     expect(crashTag("abc123", "Prod", "Android")).not.toBe(crashTag("abc123", "Prod", "iOS"));
     expect(buildTicketTitle(crash({ platform: "Android", env: "Prod" }))).toBe("[Crashlytics][Android][Prod] Boom");
+  });
+
+  it("builds a Crashlytics console deep link", () => {
+    expect(crashlyticsConsoleUrl("example-12345", "Android", "com.example.app", "abc123"))
+      .toBe("https://console.firebase.google.com/project/example-12345/crashlytics/app/android:com.example.app/issues/abc123");
+    expect(crashlyticsConsoleUrl("example-12345", "iOS", undefined, "abc123")).toBeUndefined();
   });
 });

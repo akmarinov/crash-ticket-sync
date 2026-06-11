@@ -5,6 +5,7 @@ import { dirname } from "node:path";
 import { Command } from "commander";
 import { loadConfig, selectProjects } from "./config.js";
 import { buildAttachments } from "./crashes/artifacts.js";
+import { crashlyticsConsoleUrl } from "./crashes/normalize.js";
 import { crashFromCrashlyticsJson } from "./crashes/jsonImport.js";
 import { StateStore } from "./state.js";
 import { processCrashes, syncProject } from "./sync.js";
@@ -94,6 +95,8 @@ program
     });
     crash.env = project.env;
     crash.platform = project.platform ?? crash.platform;
+    crash.consoleUrl = crash.consoleUrl
+      ?? crashlyticsConsoleUrl(project.source.projectId, crash.platform, crash.bundleIdentifier, crash.issueId);
     await processCrashes({
       project,
       state,

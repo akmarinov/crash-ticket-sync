@@ -16,6 +16,19 @@ function sanitizeTag(value: string): string {
   return value.replace(/[^a-zA-Z0-9_-]/g, "-");
 }
 
+// Deep link to the issue in the Firebase Crashlytics console. The app segment
+// is "<platform>:<bundleId>" (e.g. android:com.example.app).
+export function crashlyticsConsoleUrl(
+  firebaseProjectId: string | undefined,
+  platform: string | undefined,
+  bundleId: string | undefined,
+  issueId: string
+): string | undefined {
+  if (!firebaseProjectId || !platform || !bundleId) return undefined;
+  const token = platform.toLowerCase();
+  return `https://console.firebase.google.com/project/${firebaseProjectId}/crashlytics/app/${token}:${bundleId}/issues/${issueId}`;
+}
+
 export function buildTicketTitle(crash: CrashRecord): string {
   const title = crash.title.trim() || `Crashlytics issue ${crash.issueId}`;
   const labels = [crash.platform, crash.env].filter((value): value is string => Boolean(value)).map((value) => `[${value}]`).join("");
